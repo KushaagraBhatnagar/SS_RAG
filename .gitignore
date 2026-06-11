@@ -1,0 +1,19 @@
+# Ignore API keys and configuration secrets
+.env
+
+# Ignore heavy ML model caches
+model_cache/
+models/
+
+# Ignore local vector database folder
+qdrant_local_data/
+
+# Python caching
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.venv/
+venv/
+env/

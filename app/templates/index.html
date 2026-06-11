@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon-Scale Semantic RAG Engine</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: rgba(22, 29, 49, 0.65);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-glow: rgba(245, 158, 11, 0.15);
+            --amazon-orange: #f59e0b;
+            --amazon-dark-orange: #d97706;
+            --pro-green: #10b981;
+            --con-red: #ef4444;
+            --font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: var(--font-family);
+            min-height: 100/vh;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(245, 158, 11, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(99, 102, 241, 0.04) 0%, transparent 40%);
+            background-attachment: fixed;
+            padding-bottom: 60px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Header Style */
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: fadeInDown 0.8s ease;
+        }
+
+        .logo-area {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .logo-icon {
+            font-size: 2.5rem;
+            color: var(--amazon-orange);
+            filter: drop-shadow(0 0 15px rgba(245, 158, 11, 0.5));
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            background: linear-gradient(135deg, #f8fafc 40%, #cbd5e1 50%, var(--amazon-orange) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            font-size: 1.05rem;
+            color: var(--text-secondary);
+            font-weight: 400;
+            margin-top: 8px;
+        }
+
+        /* Search Section */
+        .search-container {
+            position: relative;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            margin-bottom: 40px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: fadeInUp 0.8s ease 0.2s both;
+        }
+
+        .search-container:focus-within {
+            border-color: rgba(245, 158, 11, 0.5);
+            box-shadow: 0 8px 32px 0 rgba(245, 158, 11, 0.12), 0 0 0 4px rgba(245, 158, 11, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .search-icon {
+            padding: 0 16px;
+            color: var(--text-secondary);
+            font-size: 1.25rem;
+        }
+
+        .search-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text-primary);
+            font-family: var(--font-family);
+            font-size: 1.1rem;
+            font-weight: 400;
+            padding: 12px 0;
+        }
+
+        .search-input::placeholder {
+            color: #475569;
+        }
+
+        .search-button {
+            background: linear-gradient(135deg, var(--amazon-orange), var(--amazon-dark-orange));
+            border: none;
+            border-radius: 14px;
+            color: #0f172a;
+            font-family: var(--font-family);
+            font-weight: 600;
+            font-size: 1rem;
+            padding: 12px 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+        }
+
+        .search-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(245, 158, 11, 0.4);
+            filter: brightness(1.05);
+        }
+
+        .search-button:active {
+            transform: translateY(1px);
+        }
+
+        /* Results Container */
+        .results-heading {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .results-heading span {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--amazon-orange);
+            font-size: 0.85rem;
+            padding: 4px 10px;
+            border-radius: 99px;
+            font-weight: 500;
+        }
+
+        .results-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Product Cards */
+        .product-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            animation: slideInUp 0.6s ease both;
+        }
+
+        .product-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+        }
+
+        /* Highlight Top Result */
+        .product-card.top-result {
+            border-color: rgba(245, 158, 11, 0.45);
+            background: linear-gradient(180deg, rgba(22, 29, 49, 0.85) 0%, rgba(22, 29, 49, 0.65) 100%);
+            box-shadow: 0 12px 40px rgba(245, 158, 11, 0.08);
+        }
+
+        .product-card.top-result::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--amazon-orange), var(--amazon-dark-orange));
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 20px;
+            margin-bottom: 12px;
+        }
+
+        .product-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            line-height: 1.4;
+        }
+
+        .product-card.top-result .product-title {
+            font-size: 1.4rem;
+            background: linear-gradient(135deg, #ffffff 60%, #cbd5e1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .score-badge {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 99px;
+            padding: 6px 14px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .product-card.top-result .score-badge {
+            background: rgba(245, 158, 11, 0.12);
+            border-color: rgba(245, 158, 11, 0.25);
+            color: var(--amazon-orange);
+            box-shadow: 0 0 10px rgba(245, 158, 11, 0.1);
+        }
+
+        .asin-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+            font-family: monospace;
+            letter-spacing: 0.05em;
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        /* RAG Synthesis Box */
+        .synthesis-container {
+            margin-top: 20px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.2);
+            animation: fadeIn 0.5s ease 0.3s both;
+        }
+
+        .synthesis-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--amazon-orange);
+            margin-bottom: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .synthesis-content {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .bullet-point {
+            display: flex;
+            gap: 12px;
+            line-height: 1.5;
+            font-size: 0.95rem;
+        }
+
+        .bullet-point i {
+            margin-top: 4px;
+            flex-shrink: 0;
+        }
+
+        .bullet-point.pro i {
+            color: var(--pro-green);
+        }
+
+        .bullet-point.con i {
+            color: var(--con-red);
+        }
+
+        /* Skeleton Loading State */
+        .skeleton {
+            background: linear-gradient(90deg, #182235 25%, #22304b 50%, #182235 75%);
+            background-size: 200% 100%;
+            animation: loadingSkeleton 1.5s infinite;
+            border-radius: 8px;
+        }
+
+        .skeleton-card {
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            border-radius: 20px;
+            padding: 24px;
+            background: rgba(22, 29, 49, 0.3);
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .skeleton-title {
+            height: 24px;
+            width: 70%;
+        }
+
+        .skeleton-asin {
+            height: 16px;
+            width: 100px;
+        }
+
+        .skeleton-score {
+            height: 30px;
+            width: 110px;
+            border-radius: 99px;
+            align-self: flex-start;
+        }
+
+        .skeleton-synthesis {
+            height: 80px;
+            border-radius: 14px;
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        /* Animations */
+        @keyframes loadingSkeleton {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Alert styling when local Ollama is offline */
+        .warning-badge {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            color: #fca5a5;
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            margin-bottom: 24px;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .warning-badge i {
+            color: var(--con-red);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header Section -->
+        <header>
+            <div class="logo-area">
+                <i class="fa-brands fa-amazon logo-icon"></i>
+                <h1>Semantic Search & RAG</h1>
+            </div>
+            <p class="subtitle">Two-Stage Recall (Bi-Encoder) & Re-ranking (Cross-Encoder) with LLM Review Synthesis</p>
+        </header>
+
+        <!-- Search Bar -->
+        <div class="search-container">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input type="text" id="queryInput" class="search-input" placeholder="What product are you looking for? (e.g. noise canceling headphones)" autocomplete="off">
+            <button id="searchBtn" class="search-button">
+                <span>Search</span>
+                <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </div>
+
+        <!-- Connection Warnings -->
+        <div id="llmWarning" class="warning-badge">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <span>Local Ollama is currently unreachable. RAG review summaries will show setup fallbacks.</span>
+        </div>
+
+        <!-- Results Header -->
+        <div id="resultsHeading" class="results-heading">
+            Search Results <span id="resultsCount">0 items</span>
+        </div>
+
+        <!-- Main Display List -->
+        <div id="resultsList" class="results-list">
+            <!-- Initial state: welcome info -->
+            <div style="text-align: center; padding: 40px 0; color: var(--text-secondary);">
+                <i class="fa-solid fa-magnifying-glass-arrow-right" style="font-size: 3rem; margin-bottom: 16px; opacity: 0.3; color: var(--amazon-orange);"></i>
+                <p>Type a search query above to query the vector database and generate AI summaries.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const queryInput = document.getElementById('queryInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const resultsList = document.getElementById('resultsList');
+        const resultsHeading = document.getElementById('resultsHeading');
+        const resultsCount = document.getElementById('resultsCount');
+        const llmWarning = document.getElementById('llmWarning');
+
+        // Check health check status at startup
+        async function checkServiceHealth() {
+            try {
+                const response = await fetch('/health');
+                const data = await response.json();
+                if (data.status === 'degraded' || !data.llm_connected) {
+                    llmWarning.style.display = 'flex';
+                } else {
+                    llmWarning.style.display = 'none';
+                }
+            } catch (err) {
+                console.warn("Could not retrieve health check details:", err);
+            }
+        }
+
+        checkServiceHealth();
+
+        // Search triggering logic
+        searchBtn.addEventListener('click', performSearch);
+        queryInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') performSearch();
+        });
+
+        async function performSearch() {
+            const query = queryInput.value.trim();
+            if (!query) return;
+
+            // 1. Show skeleton loader
+            showSkeletonLoader();
+
+            try {
+                // 2. Fetch search results from FastAPI gateway
+                const response = await fetch('/search', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        query: query,
+                        top_k: 10
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Server returned status: ${response.status}`);
+                }
+
+                const results = await response.json();
+                
+                // 3. Render results
+                renderResults(results);
+
+            } catch (err) {
+                console.error("Error performing search:", err);
+                renderError(err.message);
+            }
+        }
+
+        function showSkeletonLoader() {
+            resultsHeading.style.display = 'none';
+            resultsList.innerHTML = `
+                <div class="skeleton-card">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div class="skeleton skeleton-title"></div>
+                        <div class="skeleton skeleton-score"></div>
+                    </div>
+                    <div class="skeleton skeleton-asin"></div>
+                    <div class="skeleton skeleton-synthesis"></div>
+                </div>
+                <div class="skeleton-card">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div class="skeleton skeleton-title" style="width: 50%;"></div>
+                        <div class="skeleton skeleton-score"></div>
+                    </div>
+                    <div class="skeleton skeleton-asin"></div>
+                </div>
+                <div class="skeleton-card">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div class="skeleton skeleton-title" style="width: 60%;"></div>
+                        <div class="skeleton skeleton-score"></div>
+                    </div>
+                    <div class="skeleton skeleton-asin"></div>
+                </div>
+            `;
+        }
+
+        function renderResults(results) {
+            resultsList.innerHTML = '';
+            
+            if (results.length === 0) {
+                resultsHeading.style.display = 'none';
+                resultsList.innerHTML = `
+                    <div style="text-align: center; padding: 40px 0; color: var(--text-secondary);">
+                        <i class="fa-regular fa-face-frown" style="font-size: 3rem; margin-bottom: 16px; opacity: 0.3;"></i>
+                        <p>No products matched your search query in the local database.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Show headers
+            resultsCount.textContent = `${results.length} items`;
+            resultsHeading.style.display = 'flex';
+
+            results.forEach((item, index) => {
+                const isTop = index === 0;
+                const card = document.createElement('div');
+                card.className = `product-card ${isTop ? 'top-result' : ''}`;
+                card.style.animationDelay = `${index * 0.1}s`;
+
+                // Convert score to a percentage match for visual appeal (assuming scores usually range between -15 and 15, or cosine similarities)
+                // If it's a re-ranked cross-encoder score, it ranges between -12 and +10 typically.
+                // We will display the raw re-ranked similarity score nicely formatted.
+                const formattedScore = item.re_ranked_score.toFixed(3);
+
+                let cardContent = `
+                    <div class="card-header">
+                        <h3 class="product-title">${item.title}</h3>
+                        <span class="score-badge">
+                            <i class="fa-solid fa-chart-simple"></i>
+                            Re-rank: ${formattedScore}
+                        </span>
+                    </div>
+                    <span class="asin-label">ASIN: ${item.product_id}</span>
+                `;
+
+                // If top item has a review summary, inject RAG Synthesis block
+                if (isTop && item.review_summary) {
+                    const parsedSynthesis = parseReviewSummary(item.review_summary);
+                    
+                    cardContent += `
+                        <div class="synthesis-container">
+                            <div class="synthesis-header">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                                AI Review Synthesis (RAG)
+                            </div>
+                            <div class="synthesis-content">
+                                <div class="bullet-point pro">
+                                    <i class="fa-solid fa-circle-check"></i>
+                                    <span>${parsedSynthesis.pro}</span>
+                                </div>
+                                <div class="bullet-point con">
+                                    <i class="fa-solid fa-circle-xmark"></i>
+                                    <span>${parsedSynthesis.con}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                card.innerHTML = cardContent;
+                resultsList.appendChild(card);
+            });
+        }
+
+        // Helpers to parse bullet points starting with "- Pro:" and "- Con:"
+        function parseReviewSummary(summary) {
+            let pro = "No positive points synthesized.";
+            let con = "No negative points synthesized.";
+            
+            const lines = summary.split('\n');
+            lines.forEach(line => {
+                const trimmed = line.trim();
+                if (trimmed.toLowerCase().startsWith('- pro:')) {
+                    pro = trimmed.substring(6).trim();
+                } else if (trimmed.toLowerCase().startsWith('- con:')) {
+                    con = trimmed.substring(6).trim();
+                } else if (trimmed.toLowerCase().startsWith('pro:')) {
+                    pro = trimmed.substring(4).trim();
+                } else if (trimmed.toLowerCase().startsWith('con:')) {
+                    con = trimmed.substring(4).trim();
+                }
+            });
+
+            return { pro, con };
+        }
+
+        function renderError(message) {
+            resultsHeading.style.display = 'none';
+            resultsList.innerHTML = `
+                <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 16px; padding: 24px; text-align: center; color: #fca5a5;">
+                    <i class="fa-solid fa-circle-exclamation" style="font-size: 2rem; margin-bottom: 12px; color: var(--con-red);"></i>
+                    <h3 style="margin-bottom: 8px; font-weight:600;">API Request Failed</h3>
+                    <p style="font-size:0.95rem; opacity:0.85;">${message}</p>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
