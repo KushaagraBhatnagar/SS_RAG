@@ -31,9 +31,9 @@ class SearchEngine:
             self.qdrant_client = QdrantClient(path="qdrant_local_data")
         elif mode == "cloud" or settings.QDRANT_API_KEY:
             url = settings.QDRANT_HOST if settings.QDRANT_HOST.startswith("http") else f"https://{settings.QDRANT_HOST}"
-            self.qdrant_client = QdrantClient(url=url, api_key=settings.QDRANT_API_KEY)
+            self.qdrant_client = QdrantClient(url=url, api_key=settings.QDRANT_API_KEY, prefer_grpc=False)
         else:
-            self.qdrant_client = QdrantClient(host=settings.QDRANT_HOST, port=settings.QDRANT_PORT)
+            self.qdrant_client = QdrantClient(host=settings.QDRANT_HOST, port=settings.QDRANT_PORT, prefer_grpc=False)
 
         # Initialize Models
         logger.info(f"Loading Bi-Encoder model: {settings.BI_ENCODER_MODEL}...")

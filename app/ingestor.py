@@ -178,9 +178,9 @@ def seed_database(products: List[Dict[str, Any]]) -> None:
         client = QdrantClient(path="qdrant_local_data")
     elif mode == "cloud" or settings.QDRANT_API_KEY:
         url = settings.QDRANT_HOST if settings.QDRANT_HOST.startswith("http") else f"https://{settings.QDRANT_HOST}"
-        client = QdrantClient(url=url, api_key=settings.QDRANT_API_KEY)
+        client = QdrantClient(url=url, api_key=settings.QDRANT_API_KEY, prefer_grpc=False)
     else:
-        client = QdrantClient(host=settings.QDRANT_HOST, port=settings.QDRANT_PORT)
+        client = QdrantClient(host=settings.QDRANT_HOST, port=settings.QDRANT_PORT, prefer_grpc=False)
 
     # 2. Instantiate Bi-Encoder
     logger.info(f"Initializing Bi-Encoder: {settings.BI_ENCODER_MODEL}...")

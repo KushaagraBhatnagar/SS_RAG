@@ -40,6 +40,8 @@ COPY --from=builder /build/model_cache /app/model_cache
 ENV PATH=/root/.local/bin:$PATH
 ENV HF_HOME=/app/model_cache
 ENV SENTENCE_TRANSFORMERS_HOME=/app/model_cache
+ENV HF_HUB_OFFLINE=1
+ENV TRANSFORMERS_OFFLINE=1
 
 # Copy application files
 COPY app/ /app/app

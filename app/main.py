@@ -27,16 +27,23 @@ search_engine: Optional[SearchEngine] = None
 synthesizer: Optional[ReviewSynthesizer] = None
 
 @app.on_event("startup")
-def startup_event():
-    """Load the models and database connection on startup to avoid request-time latency."""
+async def startup_event():
+    """Load the models and database connection in the background to prevent startup timeout on Render."""
     global search_engine, synthesizer
-    logger.info("Starting up FastAPI application and loading ML models...")
-    try:
-        search_engine = SearchEngine()
-        synthesizer = ReviewSynthesizer()
-        logger.info("Startup complete. All models and services successfully loaded.")
-    except Exception as e:
-        logger.critical(f"Failed to initialize services during startup: {e}", exc_info=True)
+    logger.info("Starting up FastAPI application and spawning ML model loader task...")
+    
+    async def load_models_async():
+        global search_engine, synthesizer
+        try:
+            logger.info("Background model loading started...")
+            # Run model loading in a threadpool because it is CPU-bound
+            search_engine = await asyncio.to_thread(SearchEngine)
+            synthesizer = await asyncio.to_thread(ReviewSynthesizer)
+            logger.info("Background model loading complete. All services ready.")
+        except Exception as e:
+            logger.critical(f"Failed to initialize services in background: {e}", exc_info=True)
+
+    asyncio.create_task(load_models_async())
 
 @app.get("/", response_class=HTMLResponse, summary="Serve Search UI Page")
 async def serve_ui():
