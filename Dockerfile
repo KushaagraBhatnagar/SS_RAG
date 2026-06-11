@@ -42,6 +42,7 @@ ENV HF_HOME=/app/model_cache
 ENV SENTENCE_TRANSFORMERS_HOME=/app/model_cache
 ENV HF_HUB_OFFLINE=1
 ENV TRANSFORMERS_OFFLINE=1
+ENV MALLOC_ARENA_MAX=2
 
 # Copy application files
 COPY app/ /app/app

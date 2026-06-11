@@ -36,10 +36,20 @@ class SearchEngine:
             self.qdrant_client = QdrantClient(host=settings.QDRANT_HOST, port=settings.QDRANT_PORT, prefer_grpc=False)
 
         # Initialize Models
+        import torch
+        import gc
+        
+        # Limit threads to reduce memory overhead and CPU thrashing
+        torch.set_num_threads(1)
+        
         logger.info(f"Loading Bi-Encoder model: {settings.BI_ENCODER_MODEL}...")
         self.bi_encoder = SentenceTransformer(
             settings.BI_ENCODER_MODEL, 
             cache_folder=settings.MODEL_CACHE_DIR
+        )
+        logger.info("Applying dynamic quantization to Bi-Encoder...")
+        self.bi_encoder = torch.quantization.quantize_dynamic(
+            self.bi_encoder, {torch.nn.Linear}, dtype=torch.qint8
         )
 
         logger.info(f"Loading Cross-Encoder model: {settings.CROSS_ENCODER_MODEL}...")
@@ -47,6 +57,13 @@ class SearchEngine:
             settings.CROSS_ENCODER_MODEL, 
             cache_folder=settings.MODEL_CACHE_DIR
         )
+        logger.info("Applying dynamic quantization to Cross-Encoder...")
+        self.cross_encoder.model = torch.quantization.quantize_dynamic(
+            self.cross_encoder.model, {torch.nn.Linear}, dtype=torch.qint8
+        )
+
+        # Force garbage collection to release temporary memory buffers
+        gc.collect()
 
         self._initialized = True
         logger.info("Search Engine successfully initialized and models loaded!")
