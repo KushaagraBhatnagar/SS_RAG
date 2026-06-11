@@ -18,15 +18,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir --user -r requirements.txt
 
 # Pre-download ML models during build stage to prevent startup delays
-RUN python -c " \
-from sentence_transformers import SentenceTransformer, CrossEncoder; \
-import os; \
-cache_dir = '/build/model_cache'; \
-os.makedirs(cache_dir, exist_ok=True); \
-SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2', cache_folder=cache_dir); \
-CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2', cache_folder=cache_dir); \
-print('Models downloaded successfully!') \
-"
+RUN python -c "from sentence_transformers import SentenceTransformer, CrossEncoder; import os; cache_dir = '/build/model_cache'; os.makedirs(cache_dir, exist_ok=True); SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2', cache_folder=cache_dir); CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2', cache_folder=cache_dir); print('Models downloaded successfully!')"
 
 # ==========================================
 # Stage 2: Runner
