@@ -1,7 +1,7 @@
 import logging
 import os
 import requests
-from typing import List, Dict, Any, Tuple
+from typing import List, Dict, Any, Tuple, Optional
 from qdrant_client import QdrantClient
 from qdrant_client.http import models
 
