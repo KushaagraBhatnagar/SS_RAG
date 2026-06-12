@@ -127,6 +127,20 @@ Start the FastAPI server:
 uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
 Open your browser and navigate to `http://localhost:8000` to view the search frontend!
+---
+
+## ☁️ Render Free Tier Deployment & Memory Optimization
+
+Render's Free plan has a strict **512 MB RAM limit**. Running PyTorch, local Sentence-Transformers, and local Cross-Encoder models together exceeds this limit, causing `Memory Limit Exceeded` (OOM) crashes during container startup.
+
+To deploy successfully on Render's Free Tier:
+1. **Enable Cloud Mode**: Set the environment variable `USE_CLOUD_API=True` in your Render dashboard settings.
+2. **Configure Cloud Services**:
+   - Create a free cluster on [Qdrant Cloud](https://cloud.qdrant.io/) and configure `QDRANT_MODE=cloud`, `QDRANT_HOST`, and `QDRANT_API_KEY`.
+   - Configure a cloud LLM provider (e.g. Groq or OpenAI) using `LLM_PROVIDER=groq` and `LLM_API_KEY=your_key`.
+3. **Configure Hugging Face Access (Optional)**: To ensure high-rate limits on the serverless Hugging Face Inference API (which encodes vectors and computes rerank scores without local libraries), add your Hugging Face user access token as `HF_TOKEN` in the environment variables.
+
+When `USE_CLOUD_API` is set to `True`, the engine performs query encoding and re-ranking via Hugging Face's serverless Inference API endpoints. This prevents loading PyTorch, SentenceTransformers, or CrossEncoder into local memory at startup, lowering the runtime memory footprint from **~600 MB** to **~80 MB** and allowing the server to operate flawlessly on Render.
 
 ---
 
